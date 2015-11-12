@@ -7,7 +7,7 @@
 *
 * Phaser - http://phaser.io
 *
-* v2.4.4 "Amador" - Built: Thu Nov 12 2015 21:07:08
+* v2.4.4 "Amador" - Built: Thu Nov 12 2015 21:40:46
 *
 * By Richard Davey http://www.photonstorm.com @photonstorm
 *
@@ -29162,7 +29162,7 @@ Phaser.StateManager.prototype = {
 
         //  At this point key and pendingState should equal each other
         this.onInitCallback.apply(this.callbackContext, this._args);
-        this.postInitiCallback.apply(this.callbackContext, this._args);
+        this.postInitCallback.apply(this.callbackContext, this._args);
 
         //  If they no longer do then the init callback hit StateManager.start
         if (key === this._pendingState)

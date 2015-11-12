@@ -575,7 +575,7 @@ Phaser.StateManager.prototype = {
 
         //  At this point key and pendingState should equal each other
         this.onInitCallback.apply(this.callbackContext, this._args);
-        this.postInitiCallback.apply(this.callbackContext, this._args);
+        this.postInitCallback.apply(this.callbackContext, this._args);
 
         //  If they no longer do then the init callback hit StateManager.start
         if (key === this._pendingState)
