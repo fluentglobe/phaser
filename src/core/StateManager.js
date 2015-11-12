@@ -69,14 +69,14 @@ Phaser.StateManager = function (game, pendingState) {
 
     /**
     * onStateChange is a Phaser.Signal that is dispatched whenever the game changes state.
-    * 
+    *
     * It is dispatched only when the new state is started, which isn't usually at the same time as StateManager.start
     * is called because state swapping is done in sync with the game loop. It is dispatched *before* any of the new states
     * methods (such as preload and create) are called, and *after* the previous states shutdown method has been run.
     *
-    * The callback you specify is sent two parameters: the string based key of the new state, 
+    * The callback you specify is sent two parameters: the string based key of the new state,
     * and the second parameter is the string based key of the old / previous state.
-    * 
+    *
     * @property {Phaser.Signal} onStateChange
     */
     this.onStateChange = new Phaser.Signal();
@@ -85,7 +85,13 @@ Phaser.StateManager = function (game, pendingState) {
     * @property {function} onInitCallback - This is called when the state is set as the active state.
     * @default
     */
-    this.onInitCallback = null;
+    this.onInitCallback = this.dummy;
+
+    /**
+     * Called after init
+     * @default
+     */
+    this.postInitCallback = this.dummy;
 
     /**
     * @property {function} onPreloadCallback - This is called when the state starts to load assets.
@@ -97,7 +103,13 @@ Phaser.StateManager = function (game, pendingState) {
     * @property {function} onCreateCallback - This is called when the state preload has finished and creation begins.
     * @default
     */
-    this.onCreateCallback = null;
+    this.onCreateCallback = this.dummy;
+
+    /*
+     * Called after create
+     * @default
+     */
+    this.postCreateCallback = this.dummy;
 
     /**
     * @property {function} onUpdateCallback - This is called when the state is updated, every game loop. It doesn't happen during preload (@see onLoadUpdateCallback).
@@ -139,7 +151,7 @@ Phaser.StateManager = function (game, pendingState) {
     * @property {function} onPausedCallback - This is called when the game is paused.
     * @default
     */
-    this.onPausedCallback = null;
+    this.onPausedCallback = this.dummy;
 
     /**
     * @property {function} onResumedCallback - This is called when the game is resumed from a paused state.
@@ -160,6 +172,8 @@ Phaser.StateManager = function (game, pendingState) {
     this.onShutDownCallback = null;
 
 };
+
+function NIL() {}
 
 Phaser.StateManager.prototype = {
 
@@ -239,18 +253,20 @@ Phaser.StateManager.prototype = {
         {
             this.callbackContext = null;
 
-            this.onInitCallback = null;
+            this.onInitCallback = this.dummy;
+            this.postInitCallback = this.dummy;
             this.onShutDownCallback = null;
 
             this.onPreloadCallback = null;
             this.onLoadRenderCallback = null;
             this.onLoadUpdateCallback = null;
-            this.onCreateCallback = null;
+            this.onCreateCallback = this.dummy;
+            this.postCreateCallback = this.dummy;
             this.onUpdateCallback = null;
             this.onPreRenderCallback = null;
             this.onRenderCallback = null;
             this.onResizeCallback = null;
-            this.onPausedCallback = null;
+            this.onPausedCallback = this.dummy;
             this.onResumedCallback = null;
             this.onPauseUpdateCallback = null;
         }
@@ -318,8 +334,7 @@ Phaser.StateManager.prototype = {
     * @method Phaser.StateManager#dummy
     * @private
     */
-    dummy: function () {
-    },
+    dummy: NIL,
 
     /**
     * preUpdate is called right at the start of the game loop. It is responsible for changing to a new state that was requested previously.
@@ -462,27 +477,26 @@ Phaser.StateManager.prototype = {
     * @protected
     */
     link: function (key) {
-
-        this.states[key].game = this.game;
-        this.states[key].add = this.game.add;
-        this.states[key].make = this.game.make;
-        this.states[key].camera = this.game.camera;
-        this.states[key].cache = this.game.cache;
-        this.states[key].input = this.game.input;
-        this.states[key].load = this.game.load;
-        this.states[key].math = this.game.math;
-        this.states[key].sound = this.game.sound;
-        this.states[key].scale = this.game.scale;
-        this.states[key].state = this;
-        this.states[key].stage = this.game.stage;
-        this.states[key].time = this.game.time;
-        this.states[key].tweens = this.game.tweens;
-        this.states[key].world = this.game.world;
-        this.states[key].particles = this.game.particles;
-        this.states[key].rnd = this.game.rnd;
-        this.states[key].physics = this.game.physics;
-        this.states[key].key = key;
-
+        var state = this.states[key];
+        state.game = this.game;
+        state.add = this.game.add;
+        state.make = this.game.make;
+        state.camera = this.game.camera;
+        state.cache = this.game.cache;
+        state.input = this.game.input;
+        state.load = this.game.load;
+        state.math = this.game.math;
+        state.sound = this.game.sound;
+        state.scale = this.game.scale;
+        state.state = this;
+        state.stage = this.game.stage;
+        state.time = this.game.time;
+        state.tweens = this.game.tweens;
+        state.world = this.game.world;
+        state.particles = this.game.particles;
+        state.rnd = this.game.rnd;
+        state.physics = this.game.physics;
+        state.key = key;
     },
 
     /**
@@ -494,26 +508,27 @@ Phaser.StateManager.prototype = {
     */
     unlink: function (key) {
 
-        if (this.states[key])
+        var state = this.states[key];
+        if (state)
         {
-            this.states[key].game = null;
-            this.states[key].add = null;
-            this.states[key].make = null;
-            this.states[key].camera = null;
-            this.states[key].cache = null;
-            this.states[key].input = null;
-            this.states[key].load = null;
-            this.states[key].math = null;
-            this.states[key].sound = null;
-            this.states[key].scale = null;
-            this.states[key].state = null;
-            this.states[key].stage = null;
-            this.states[key].time = null;
-            this.states[key].tweens = null;
-            this.states[key].world = null;
-            this.states[key].particles = null;
-            this.states[key].rnd = null;
-            this.states[key].physics = null;
+            state.game = null;
+            state.add = null;
+            state.make = null;
+            state.camera = null;
+            state.cache = null;
+            state.input = null;
+            state.load = null;
+            state.math = null;
+            state.sound = null;
+            state.scale = null;
+            state.state = null;
+            state.stage = null;
+            state.time = null;
+            state.tweens = null;
+            state.world = null;
+            state.particles = null;
+            state.rnd = null;
+            state.physics = null;
         }
 
     },
@@ -537,12 +552,12 @@ Phaser.StateManager.prototype = {
         this.onPreloadCallback = this.states[key]['preload'] || null;
         this.onLoadRenderCallback = this.states[key]['loadRender'] || null;
         this.onLoadUpdateCallback = this.states[key]['loadUpdate'] || null;
-        this.onCreateCallback = this.states[key]['create'] || null;
+        this.onCreateCallback = this.states[key]['create'] || this.dummy;
         this.onUpdateCallback = this.states[key]['update'] || null;
         this.onPreRenderCallback = this.states[key]['preRender'] || null;
         this.onRenderCallback = this.states[key]['render'] || null;
         this.onResizeCallback = this.states[key]['resize'] || null;
-        this.onPausedCallback = this.states[key]['paused'] || null;
+        this.onPausedCallback = this.states[key]['paused'] || this.dummy;
         this.onResumedCallback = this.states[key]['resumed'] || null;
         this.onPauseUpdateCallback = this.states[key]['pauseUpdate'] || null;
 
@@ -560,6 +575,7 @@ Phaser.StateManager.prototype = {
 
         //  At this point key and pendingState should equal each other
         this.onInitCallback.apply(this.callbackContext, this._args);
+        this.postInitiCallback.apply(this.callbackContext, this._args);
 
         //  If they no longer do then the init callback hit StateManager.start
         if (key === this._pendingState)
@@ -588,16 +604,12 @@ Phaser.StateManager.prototype = {
     */
     loadComplete: function () {
 
-        if (this._created === false && this.onCreateCallback)
+        if (!this._created)
         {
             this._created = true;
             this.onCreateCallback.call(this.callbackContext, this.game);
+            this.postCreateCallback.call(this.callbackContext, this.game);
         }
-        else
-        {
-            this._created = true;
-        }
-
     },
 
     /**
@@ -606,7 +618,7 @@ Phaser.StateManager.prototype = {
     */
     pause: function () {
 
-        if (this._created && this.onPausedCallback)
+        if (this._created)
         {
             this.onPausedCallback.call(this.callbackContext, this.game);
         }
@@ -743,16 +755,18 @@ Phaser.StateManager.prototype = {
 
         this.callbackContext = null;
 
-        this.onInitCallback = null;
+        this.onInitCallback = NIL;
+        this.postInitCallback = NIL;
         this.onShutDownCallback = null;
 
         this.onPreloadCallback = null;
         this.onLoadRenderCallback = null;
         this.onLoadUpdateCallback = null;
-        this.onCreateCallback = null;
+        this.onCreateCallback = NIL;
+        this.postCreateCallback = NIL;
         this.onUpdateCallback = null;
         this.onRenderCallback = null;
-        this.onPausedCallback = null;
+        this.onPausedCallback = NIL;
         this.onResumedCallback = null;
         this.onPauseUpdateCallback = null;
 
